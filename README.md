@@ -1,16 +1,31 @@
-# React + Vite
+User Management Dashboard (React + Vite)
+A simple, fast user management dashboard with filtering, searching, sorting, and pagination. Data is demo-fetched from https://jsonplaceholder.typicode.com/users.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Features
+Add, edit, and delete users (delete uses a confirm dialog)
+Filter by first name, last name, email, and company
+Search across name, email, and company
+Sort by ID, first name, last name, email, or company
+Pagination with configurable rows per page
+Loading states and basic error handling
 
-Currently, two official plugins are available:
+Tech Stack
+React + Vite
+Axios for HTTP
+React Context for state sharing
+Utility CSS classes (Tailwind-style)
+React Icons
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Structure
 
-## React Compiler
-
-The React Compiler is not enabled on this template. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+src/
+AddEditUser.jsx # Add/Edit modal
+App.jsx # Main container: filters, search, sort, pagination
+Filters.jsx # Filter inputs + Apply/Clear
+Pagination.jsx # Pagination controls
+Loader.jsx # Spinner
+hooks/useUser.js # Access user context
+UserContext.js # Context definition
+UserProvider.jsx # Fetches users, provides state
+main.jsx # App bootstrap
+index.css # Global styles (and Tailwind setup if used)
