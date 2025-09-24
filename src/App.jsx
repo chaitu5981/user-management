@@ -14,6 +14,8 @@ const App = () => {
   const [deletingId, setDeletingId] = useState(null);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [filteredUsers, setFilteredUsers] = useState([]);
+  const [searchedUsers, setSearchedUsers] = useState([]);
+  const [sortedUsers, setSortedUsers] = useState([]);
   const [currentFilteredUsers, setCurrentFilteredUsers] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [showFilters, setShowFilters] = useState(false);
@@ -22,9 +24,9 @@ const App = () => {
   const [hasSearched, setHasSearched] = useState(false);
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("id");
-  const [searchedUsers, setSearchedUsers] = useState([]);
   const noOfPages = Math.ceil(
-    (hasAppliedFilters ? filteredUsers.length : users.length) / rowsPerPage
+    (hasAppliedFilters || hasSearched ? filteredUsers.length : users.length) /
+      rowsPerPage
   );
   const [filters, setFilters] = useState({
     firstName: "",
@@ -102,7 +104,6 @@ const App = () => {
       return;
     }
     let usersToSearch = hasAppliedFilters ? filteredUsers : users;
-
     setSearchedUsers(
       usersToSearch.filter(
         (user) =>
@@ -111,30 +112,57 @@ const App = () => {
           user.company.name.toLowerCase().includes(search.toLowerCase())
       )
     );
-
     setHasSearched(true);
   }, [search, filteredUsers, hasAppliedFilters, users]);
+
   useEffect(() => {
-    let usersToDisplay = hasSearched
+    let usersToSort = hasSearched
       ? searchedUsers
       : hasAppliedFilters
       ? filteredUsers
       : users;
+    let userToSort1 = usersToSort.map((user) => ({
+      ...user,
+      company: { ...user.company },
+    }));
+    setSortedUsers(
+      userToSort1.sort((a, b) => {
+        if (sort == "company") {
+          if (a.company.name < b.company.name) return -1;
+          if (a.company.name > b.company.name) return 1;
+          return 0;
+        } else if (sort == "firstName") {
+          if (a.name.split(" ")[0] < b.name.split(" ")[0]) return -1;
+          if (a.name.split(" ")[0] > b.name.split(" ")[0]) return 1;
+          return 0;
+        } else if (sort == "lastName") {
+          if (a.name.split(" ")[1] < b.name.split(" ")[1]) return -1;
+          if (a.name.split(" ")[1] > b.name.split(" ")[1]) return 1;
+          return 0;
+        } else {
+          if (a[sort] < b[sort]) return -1;
+          if (a[sort] > b[sort]) return 1;
+          return 0;
+        }
+      })
+    );
+  }, [
+    sort,
+    filteredUsers,
+    users,
+    hasSearched,
+    hasAppliedFilters,
+    searchedUsers,
+  ]);
+
+  useEffect(() => {
     setCurrentFilteredUsers(
-      usersToDisplay.slice(
+      sortedUsers.slice(
         (currentPage - 1) * rowsPerPage,
         currentPage * rowsPerPage
       )
     );
-  }, [
-    users,
-    filteredUsers,
-    searchedUsers,
-    currentPage,
-    rowsPerPage,
-    hasAppliedFilters,
-    hasSearched,
-  ]);
+  }, [currentPage, rowsPerPage, sortedUsers]);
   return (
     <div className="w-full min-h-screen py-4">
       <h1 className="text-2xl font-bold text-center my-4">
@@ -153,7 +181,7 @@ const App = () => {
           >
             Add User
           </button>
-          <div className="flex justify-between items-center w-full">
+          <div className="flex justify-between items-center w-full flex-wrap">
             <div className="flex flex-col items-center gap-4 ">
               <button
                 onClick={() => setShowFilters(!showFilters)}
@@ -184,7 +212,7 @@ const App = () => {
             <div className="flex items-center gap-2 self-start">
               <p>Sort by: </p>
               <select
-                className="w-full p-2 rounded-md border border-gray-300"
+                className="p-2 rounded-md border border-gray-300"
                 value={sort}
                 onChange={(e) => setSort(e.target.value)}
               >
