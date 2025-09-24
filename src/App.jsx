@@ -13,13 +13,16 @@ const App = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [filteredUsers, setFilteredUsers] = useState(users);
-  const [currentFilteredUsers, setCurrentFilteredUsers] =
-    useState(filteredUsers);
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [currentFilteredUsers, setCurrentFilteredUsers] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [showFilters, setShowFilters] = useState(false);
   const [applyFilters, setApplyFilters] = useState(false);
   const [hasAppliedFilters, setHasAppliedFilters] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [search, setSearch] = useState("");
+  const [sort, setSort] = useState("id");
+  const [searchedUsers, setSearchedUsers] = useState([]);
   const noOfPages = Math.ceil(
     (hasAppliedFilters ? filteredUsers.length : users.length) / rowsPerPage
   );
@@ -94,18 +97,44 @@ const App = () => {
   }, [users, applyFilters, filters]);
 
   useEffect(() => {
-    if (!hasAppliedFilters)
-      setCurrentFilteredUsers(
-        users.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
-      );
-    else
-      setCurrentFilteredUsers(
-        filteredUsers.slice(
-          (currentPage - 1) * rowsPerPage,
-          currentPage * rowsPerPage
-        )
-      );
-  }, [filteredUsers, currentPage, rowsPerPage, users, hasAppliedFilters]);
+    if (search === "") {
+      setHasSearched(false);
+      return;
+    }
+    let usersToSearch = hasAppliedFilters ? filteredUsers : users;
+
+    setSearchedUsers(
+      usersToSearch.filter(
+        (user) =>
+          user.name.toLowerCase().includes(search.toLowerCase()) ||
+          user.email.toLowerCase().includes(search.toLowerCase()) ||
+          user.company.name.toLowerCase().includes(search.toLowerCase())
+      )
+    );
+
+    setHasSearched(true);
+  }, [search, filteredUsers, hasAppliedFilters, users]);
+  useEffect(() => {
+    let usersToDisplay = hasSearched
+      ? searchedUsers
+      : hasAppliedFilters
+      ? filteredUsers
+      : users;
+    setCurrentFilteredUsers(
+      usersToDisplay.slice(
+        (currentPage - 1) * rowsPerPage,
+        currentPage * rowsPerPage
+      )
+    );
+  }, [
+    users,
+    filteredUsers,
+    searchedUsers,
+    currentPage,
+    rowsPerPage,
+    hasAppliedFilters,
+    hasSearched,
+  ]);
   return (
     <div className="w-full min-h-screen py-4">
       <h1 className="text-2xl font-bold text-center my-4">
@@ -124,22 +153,48 @@ const App = () => {
           >
             Add User
           </button>
-          <div className="flex flex-col items-center gap-4 self-start">
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="bg-blue-500 text-white px-4 py-1 rounded-md self-start"
-            >
-              {showFilters ? "Hide Filters" : "Show Filters"}
-            </button>
-            {showFilters && (
-              <Filters
-                filters={filters}
-                setFilters={setFilters}
-                setShowFilters={setShowFilters}
-                setApplyFilters={setApplyFilters}
-                setHasAppliedFilters={setHasAppliedFilters}
+          <div className="flex justify-between items-center w-full">
+            <div className="flex flex-col items-center gap-4 ">
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className="bg-blue-500 text-white px-4 py-1 rounded-md self-start"
+              >
+                {showFilters ? "Hide Filters" : "Show Filters"}
+              </button>
+              {showFilters && (
+                <Filters
+                  filters={filters}
+                  setFilters={setFilters}
+                  setShowFilters={setShowFilters}
+                  setApplyFilters={setApplyFilters}
+                  setHasAppliedFilters={setHasAppliedFilters}
+                />
+              )}
+            </div>
+            <div className="flex items-center gap-2 self-start">
+              <span>Search: </span>
+              <input
+                type="text"
+                placeholder="Search"
+                className="w-full p-2 rounded-md border border-gray-300"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
               />
-            )}
+            </div>
+            <div className="flex items-center gap-2 self-start">
+              <p>Sort by: </p>
+              <select
+                className="w-full p-2 rounded-md border border-gray-300"
+                value={sort}
+                onChange={(e) => setSort(e.target.value)}
+              >
+                <option value="id">ID</option>
+                <option value="firstName">First Name</option>
+                <option value="lastName">Last Name</option>
+                <option value="email">Email</option>
+                <option value="company">Company</option>
+              </select>
+            </div>
           </div>
           <table className="w-full table-fixed border-collapse border border-gray-300">
             <thead>
@@ -181,7 +236,7 @@ const App = () => {
                     <td className="text-center border border-gray-300 py-2 whitespace-normal break-words">
                       {user.company.name}
                     </td>
-                    <td className="text-center border border-gray-300 py-2 flex flex-col md:flex-row px-2 gap-2 justify-center">
+                    <td className="text-center border border-gray-300 py-2 flex flex-col sm:flex-row px-2 gap-2 justify-center">
                       <button
                         onClick={() => {
                           setShowAddEditUser(true);
