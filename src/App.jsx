@@ -113,6 +113,7 @@ const App = () => {
       )
     );
     setHasSearched(true);
+    setCurrentPage(1);
   }, [search, filteredUsers, hasAppliedFilters, users]);
 
   useEffect(() => {
@@ -146,6 +147,7 @@ const App = () => {
         }
       })
     );
+    setCurrentPage(1);
   }, [
     sort,
     filteredUsers,
